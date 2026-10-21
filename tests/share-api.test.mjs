@@ -233,6 +233,18 @@ test("share creates an audited page rule; unshare revokes and asks for follow-up
   assert.ok(!apps.some((a) => a.id === rule.id), "last guest removed deletes the rule");
 });
 
+test("unshare doesn't call a page unshared while a rejected rule may still cover it", async () => {
+  const env = makeEnv();
+  assert.equal((await call(env, "share", { body: { slug: "page-b", emails: ["pat@example.net"] } })).status, 200);
+  const rule = apps.find((a) => a.destinations[0].uri === `${HOST}/page-b`);
+  rule.options_preflight_bypass = true;
+  calls.length = 0;
+  const res = await call(env, "unshare", { body: { slug: "page-b", email: "pat@example.net" } });
+  assert.equal(res.status, 409);
+  assert.match((await res.json()).problems.join("\n"), /OPTIONS preflight bypass/);
+  assert.ok(calls.includes("POST access/organizations/revoke_user"), "still signed them out");
+});
+
 test("share refuses unpublished pages, bad emails, and prefix clashes", async () => {
   const env = makeEnv();
   assert.equal((await call(env, "share", { body: { slug: "not-a-page", emails: ["a@b.com"] } })).status, 404);

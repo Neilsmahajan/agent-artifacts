@@ -111,11 +111,15 @@ async function main() {
       if (!slug || !SLUG.test(slug)) throw new Error("Give a page slug");
       const emails = rest.slice(1).map(normalizeEmail);
       // Orphaned rules (page since deleted) must still be removable.
-      const { pages } = await audit(null);
+      const { problems, pages } = await audit(null);
       const existing = pages.get(slug);
       if (!existing) {
         // Idempotent: a retry after a partial failure still signs people out.
         for (const email of emails) await client.revokeUser(email);
+        // A rule the audit rejected isn't in pages, but may still cover this one.
+        if (problems.length) {
+          throw new Error(`${emails.length ? "Signed the given people out, but f" : "F"}ix these first: a rule below may still share /${slug}:\n${problems.join("\n")}`);
+        }
         console.log(`/${slug} is not shared with anyone${emails.length ? "; signed the given people out anyway" : ""}`);
         break;
       }

@@ -129,10 +129,12 @@ export async function handleShareApi(request, env, url) {
       // Idempotent: removing someone who's already off the list still runs the
       // sign-outs, so a retry after a failure finishes the job.
       const email = normalizeEmail(body.email);
-      const { pages } = await auditApps(await client.listApps(), { host: env.HOST, owner: env.OWNER, publishedSlugs: null, guestIdps });
+      const { problems, pages } = await auditApps(await client.listApps(), { host: env.HOST, owner: env.OWNER, publishedSlugs: null, guestIdps });
       const existing = pages.get(slug);
       if (!existing) {
         await client.revokeUser(email);
+        // A rule the audit rejected isn't in pages, but may still cover this one.
+        if (problems.length) return reply(409, { error: "Signed them out, but fix these first: a rule below may still share this page", problems });
         return reply(200, { guests: [] });
       }
       const remaining = existing.guests.filter((g) => g !== email);
