@@ -236,7 +236,8 @@ for (const entry of entries) {
 // sharing.config.json in the root turns on per-page sharing for one project
 // (see assets/pages-worker/). It holds no secrets: the project, its KV
 // namespace for link codes, the Access team domain, and the owner. The Share
-// helper's API token is a Pages secret (ACCESS_API_TOKEN), set once.
+// helper's API token and cookie key are Pages secrets (ACCESS_API_TOKEN,
+// SHARE_COOKIE_KEY), set once by setup.mjs.
 let sharing = null;
 try {
   const config = JSON.parse(await readFile(resolve(root, "sharing.config.json"), "utf8"));

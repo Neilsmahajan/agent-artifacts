@@ -321,6 +321,27 @@ test("tokens expire, and are bound to the email and the helper's secret", async 
   assert.equal(await checkShareToken(env, OWNER, `${Number(exp) + 1000}.${mac}`, now), false, "extended expiry");
 });
 
+test("with SHARE_COOKIE_KEY the token is keyed by it, not by the Access API token", async () => {
+  const env = { ...makeEnv(), SHARE_COOKIE_KEY: "k".repeat(43) };
+  const now = Date.now();
+  const st = await mintShareToken(env, OWNER, now);
+  assert.equal(await checkShareToken(env, OWNER, st, now), true);
+  assert.equal(await checkShareToken({ ...env, ACCESS_API_TOKEN: "rotated" }, OWNER, st, now), true, "Access token rotated");
+  assert.equal(await checkShareToken({ ...env, SHARE_COOKIE_KEY: "j".repeat(43) }, OWNER, st, now), false, "cookie key rotated");
+  // Adding the key ends sessions minted under the derived key, and only those.
+  const { SHARE_COOKIE_KEY, ...legacy } = env;
+  assert.equal(await checkShareToken(legacy, OWNER, st, now), false);
+  assert.equal(await checkShareToken(env, OWNER, await mintShareToken(legacy, OWNER, now), now), false);
+});
+
+test("a SHARE_COOKIE_KEY that is too short turns the helper off", async () => {
+  const env = { ...makeEnv(), SHARE_COOKIE_KEY: "short" };
+  const url = new URL(`https://${HOST}/_share/api/session`);
+  const res = await handleShareApi(new Request(url, { method: "POST" }), env, url);
+  assert.equal(res.status, 503);
+  assert.match((await res.json()).error, /SHARE_COOKIE_KEY/);
+});
+
 test("percent-encoded helper paths are refused", async () => {
   const env = makeEnv();
   const url = new URL(`https://${HOST}/_share/api/st%61te`);

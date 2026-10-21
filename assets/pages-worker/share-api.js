@@ -15,7 +15,8 @@
 //   4. Every action but "session" must carry the Share screen's token twice:
 //      in the hub_share cookie (Path=/_share/, Secure, SameSite=Strict) and
 //      echoed in the X-Share-Token header. The helper mints it (an HMAC over
-//      the owner's email and an expiry) on POST session. Since page comments
+//      the owner's email and an expiry, keyed by SHARE_COOKIE_KEY) on POST
+//      session. Since page comments
 //      opened a network path (connect-src /<slug>/_comments/ only), this is
 //      the second layer: a script on any other page can't read a /_share/
 //      cookie, so even a request that got past the CSP couldn't name it.
@@ -34,6 +35,9 @@ export async function handleShareApi(request, env, url) {
 
   for (const name of ["HOST", "OWNER", "ACCOUNT_ID", "TEAM_DOMAIN", "SITE_AUD", "ACCESS_API_TOKEN"]) {
     if (!env[name]) return reply(503, { error: `Share helper is not configured (${name})` });
+  }
+  if (env.SHARE_COOKIE_KEY !== undefined && String(env.SHARE_COOKIE_KEY).length < COOKIE_KEY_MIN) {
+    return reply(503, { error: `Share helper is not configured (SHARE_COOKIE_KEY is shorter than ${COOKIE_KEY_MIN} characters)` });
   }
   if (url.hostname !== env.HOST) return reply(403, { error: "Use the main site address" });
 
@@ -221,11 +225,17 @@ async function loadManifest(env, url) {
 export const TOKEN_COOKIE = "hub_share";
 export const TOKEN_TTL = 12 * 60 * 60;
 
-// The HMAC key derives from the helper's own secret, so there's no second one
-// to set; rotating ACCESS_API_TOKEN ends every Share screen session.
+// The HMAC key is its own Pages secret, SHARE_COOKIE_KEY (setup.mjs makes
+// one), so the cookie's key and the Access API token are separate secrets.
+// An install from before it existed has no SHARE_COOKIE_KEY and derives the
+// key from ACCESS_API_TOKEN, as it always did. Changing whichever is in use
+// ends the owner's Share screen sessions (12 hours at most); guests never
+// hold this cookie.
+export const COOKIE_KEY_MIN = 32;
 async function tokenKey(env) {
-  const seed = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`hub-share-token|${env.ACCESS_API_TOKEN}`));
-  return crypto.subtle.importKey("raw", seed, { name: "HMAC", hash: "SHA-256" }, false, ["sign", "verify"]);
+  const seed = env.SHARE_COOKIE_KEY ? `hub-share-cookie|${env.SHARE_COOKIE_KEY}` : `hub-share-token|${env.ACCESS_API_TOKEN}`;
+  const raw = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(seed));
+  return crypto.subtle.importKey("raw", raw, { name: "HMAC", hash: "SHA-256" }, false, ["sign", "verify"]);
 }
 
 export async function mintShareToken(env, email, now = Date.now()) {

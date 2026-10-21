@@ -117,7 +117,11 @@ test("a first run creates KV, D1 and the schema, writes the config and sets the 
   assert.deepEqual(s.tags.map((t) => t.name), ["per-page-sharing"]);
   assert.deepEqual(s.revoked, ["setup-scope-check@invalid.example"]);
   // The secret went to wrangler on stdin, and only the Access calls used the Access token.
-  assert.equal(readFileSync(paths.npx, "utf8"), `wrangler pages secret put ACCESS_API_TOKEN --project-name hub :: ${ACCESS_TOKEN}\n`);
+  const [tokenPut, keyPut, ...more] = readFileSync(paths.npx, "utf8").trim().split("\n");
+  assert.equal(tokenPut, `wrangler pages secret put ACCESS_API_TOKEN --project-name hub :: ${ACCESS_TOKEN}`);
+  assert.match(keyPut, /^wrangler pages secret put SHARE_COOKIE_KEY --project-name hub :: [A-Za-z0-9_-]{43}$/);
+  assert.ok(!output.includes(keyPut.split(" :: ")[1]), "the cookie key was printed");
+  assert.deepEqual(more, []);
   assert.ok(s.calls.every((c) => (c.path.includes("/access/") ? c.auth === "access" : c.auth === "account")));
   // The revoker doesn't exist until the first publish.
   assert.match(output, /TODO  The hub-revoker Worker isn't deployed yet/);
@@ -128,7 +132,7 @@ test("a re-run creates nothing twice, and finishes once the revoker is deployed"
   run(BASE);
   const first = config();
   const s = state();
-  s.projects.hub.secrets = ["ACCESS_API_TOKEN"];
+  s.projects.hub.secrets = ["ACCESS_API_TOKEN", "SHARE_COOKIE_KEY"];
   s.workers["hub-revoker"] = { secrets: [] };
   setState(s);
   writeFileSync(paths.npx, "");
@@ -162,7 +166,8 @@ test("without an Access token it lists the scopes to create one with", () => {
   assert.match(output, /Access: Tags — Edit/);
   assert.match(output, /Access: Organizations, Identity Providers, and Groups — Edit/);
   assert.match(output, /security add-generic-password -a "\$USER" -s cf-access-share-mac -w/);
-  assert.equal(readFileSync(paths.npx, "utf8"), "");
+  // Only the cookie key, which needs no Access token.
+  assert.match(readFileSync(paths.npx, "utf8"), /^wrangler pages secret put SHARE_COOKIE_KEY --project-name hub :: \S+\n$/);
   // KV and D1 don't need the Access token, so they're made anyway.
   assert.equal(config().kvNamespaceId, state().kv[0].id);
 });

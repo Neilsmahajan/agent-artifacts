@@ -88,13 +88,34 @@ Nothing else: no zone, DNS, Pages, Workers, KV or D1 permissions. Those go
 through the wrangler login. The same token is in three places: the Keychain
 or `CF_ACCESS_TOKEN` (share.mjs, comments.mjs, publish's audit), the Pages
 secret `ACCESS_API_TOKEN` (the Share screen and the comments worker's live
-guest check), and the revoker Worker's `ACCESS_API_TOKEN` secret.
+guest check), and the revoker Worker's `ACCESS_API_TOKEN` secret. The Share
+screen's cookie key is a separate secret (`SHARE_COOKIE_KEY`, below), so
+the token never doubles as a signing key.
 `setup.mjs` checks the scopes it can without changing anything (it signs out
 a made-up address to prove the `revoke_user` one) and sets both secrets. To
 rotate it: roll it in the dashboard, store the new value, then set both
 secrets again (`npx wrangler pages secret put ACCESS_API_TOKEN --project-name
 <project>` and `npx wrangler secret put ACCESS_API_TOKEN --name
 <project>-revoker`, value on stdin) and publish.
+
+## A D1-only token for agents
+
+`comments.mjs` (and publish's comments audit) reads D1 with the wrangler
+login by default. That OAuth token can do nearly anything on the account:
+deploy Workers and Pages, edit KV, delete databases. An agent that only
+handles comments needs much less. Make a custom token with one account
+permission, **D1 — Edit**, and give it to comment work as
+`CLOUDFLARE_API_TOKEN`, which `scripts/d1.mjs` uses instead of the login:
+
+```bash
+security add-generic-password -a "$USER" -s cf-d1-comments -w   # the owner types it
+CLOUDFLARE_API_TOKEN="$(security find-generic-password -s cf-d1-comments -w)" \
+  node <skill-dir>/scripts/comments.mjs --root <root> list --actionable
+```
+
+Set it per command, not in the shell profile: wrangler uses
+`CLOUDFLARE_API_TOKEN` too, so publish and setup.mjs (Pages, KV, Workers)
+would fail with a D1-only token. Keep those on the wrangler login.
 
 ## Who can open what
 
@@ -137,8 +158,12 @@ the optional `ownerName` labels the owner's comments for guests.
   (`tests/threads.browser.test.mjs` proves it in a real browser).
 - **Share helper token**: the Share screen first calls `POST
   /_share/api/session`, which sets `hub_share` (an HMAC of the owner's email
-  and an expiry, `Path=/_share/`); every other helper call must echo it in
-  `X-Share-Token`. A script on another page can't read a `/_share/` cookie,
+  and a 12-hour expiry, `Path=/_share/`); every other helper call must echo it in
+  `X-Share-Token`. The HMAC key is the Pages secret `SHARE_COOKIE_KEY`
+  (random, at least 32 characters; setup.mjs makes it). Without it the key
+  is derived from `ACCESS_API_TOKEN`, as before it existed, so an older
+  install keeps working; adding or changing it only ends the owner's open
+  Share screen sessions (guests never hold this cookie). A script on another page can't read a `/_share/` cookie,
   so it couldn't call the helper even past its CSP.
 - **Guests**: see threads the owner or an agent started, plus their own;
   never another guest's (the server filters threads and comments). They

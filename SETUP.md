@@ -172,7 +172,9 @@ node $S/setup.mjs --root <your-root> --project <your-hub> --owner <owner-email> 
   writes `<your-root>/sharing.config.json`. Add `--no-comments` to skip D1.
 - It checks the Access API token's scopes, the login methods, the site-wide
   Access app and the team domain, creates the `/_link` rule for secret links,
-  and sets the token as the Pages secret `ACCESS_API_TOKEN`.
+  sets the token as the Pages secret `ACCESS_API_TOKEN`, and generates the
+  Share screen's cookie key as the Pages secret `SHARE_COOKIE_KEY` (never
+  printed). Run it on the wrangler login, without `CLOUDFLARE_API_TOKEN` set.
 - The Access API token is a custom token on the owner's account with three
   account permissions, and nothing else:
   - Access: Apps and Policies — Edit (page rules and the `/_link` rule)
@@ -194,6 +196,10 @@ node $S/setup.mjs --root <your-root> --project <your-hub> --owner <owner-email> 
 Then commit `sharing.config.json` (it holds no secrets), publish as in step
 7, and run setup.mjs once more. When it exits 0, check `node $S/share.mjs
 --root <your-root> list` and open a page to leave a test comment.
+
+For comment work, suggest a D1-only API token to the owner instead of the
+full wrangler login:
+[references/sharing.md](references/sharing.md#a-d1-only-token-for-agents).
 
 ## Done
 

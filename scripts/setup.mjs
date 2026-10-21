@@ -16,7 +16,8 @@
 //   - writes <root>/sharing.config.json, keeping every value already there
 //   - checks the Access API token's scopes, the login methods, the owner-only
 //     site-wide Access app and the team domain, and creates the /_link rule
-//   - sets the Pages secret ACCESS_API_TOKEN and the revoker Worker's copy
+//   - sets the Pages secrets ACCESS_API_TOKEN and SHARE_COOKIE_KEY (the Share
+//     screen's cookie key, generated here) and the revoker Worker's token
 //
 // What it can't do (create the Access token, add login methods, create the
 // site-wide Access app) it prints as a TODO with the steps. Re-run it after
@@ -29,6 +30,7 @@
 // is ever printed; secrets go to wrangler on stdin.
 
 import { spawn } from "node:child_process";
+import { randomBytes } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 import { homedir, tmpdir } from "node:os";
 import { dirname, resolve } from "node:path";
@@ -308,6 +310,8 @@ async function main() {
   };
   if (token) await pagesSecret("ACCESS_API_TOKEN", token);
   else todo("Pages secret ACCESS_API_TOKEN waits for the Access token");
+  // The Share screen's cookie key: random, made here, never shown or stored.
+  await pagesSecret("SHARE_COOKIE_KEY", randomBytes(32).toString("base64url"));
 
   const revoker = `${config.project}-revoker`;
   const workerSecrets = await cf("GET", `${acct}/workers/scripts/${revoker}/secrets`);
