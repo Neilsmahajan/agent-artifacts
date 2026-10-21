@@ -26,7 +26,9 @@ A private hub sits behind one site-wide Access app covering
 one Allow policy naming only the owner. Pages serves a deployment the moment
 it lands, so `publish-pages.mjs --require-access` checks signed out that the
 project's pages.dev address, a random subdomain of it, and each custom domain
-redirect to the Access login before it uploads, and refuses otherwise.
+redirect to the Access login before it uploads, and refuses otherwise. It
+takes those hostnames from `wrangler pages project list`, and refuses if the
+listing gives no pages.dev address rather than guess one.
 
 With sharing on, every publish and every `share.mjs` change also runs an
 audit of every Access app touching the host, and refuses on anything it
@@ -35,7 +37,9 @@ bypass that lets requests skip the policies, a widened policy (groups,
 domains, "everyone"), an untagged rule, a page rule for a page that isn't
 published (a new page with that name would inherit its guests), or a shared
 slug that is a prefix of another path (Access path matching isn't
-guaranteed to stop at a `/`). The audit covers one hostname, so sharing runs
+guaranteed to stop at a `/`). Unshare still signs the person out first, but
+won't report a page unshared while there are problems, since a rule the audit
+rejected may still cover it. The audit covers one hostname, so sharing runs
 only on the project's pages.dev address, and publish refuses while the
 project has a custom domain. Page rules carry only the owner plus plain
 email addresses, the Google and one-time PIN login methods, and a two-week
