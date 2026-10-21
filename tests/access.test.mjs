@@ -50,6 +50,21 @@ test("a missing or widened site-wide rule fails", () => {
   assert.match(audit([extra]).problems.join(), /exactly owner@example.com/);
 });
 
+test("path overrides and the preflight bypass fail on any app on the host", () => {
+  const overridden = structuredClone(site);
+  overridden.destinations[1].overrides = [{ behavior: "public", path_pattern: "/page-a/*" }];
+  assert.match(audit([overridden, page("page-a")]).problems.join(), /path overrides/);
+  assert.match(audit([overridden]).problems.join(), /No conforming site-wide/);
+  const pageOverride = page("page-a");
+  pageOverride.destinations[0].overrides = [{ behavior: "public", path_pattern: "/page-a/x" }];
+  assert.match(audit([site, pageOverride]).problems.join(), /path overrides/);
+  assert.match(audit([site, { ...link, options_preflight_bypass: true }]).problems.join(), /OPTIONS preflight bypass/);
+  // An empty list is what Cloudflare may return for an app without any.
+  const empty = structuredClone(site);
+  empty.destinations[0].overrides = [];
+  assert.deepEqual(audit([empty]).problems, []);
+});
+
 test("an untagged rule on the host fails", () => {
   const manual = { ...page("page-a"), tags: [] };
   assert.match(audit([site, manual]).problems.join(), /untagged/);

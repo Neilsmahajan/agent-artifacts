@@ -241,6 +241,13 @@ export function auditApps(apps, { host, owner, publishedSlugs, guestIdps }) {
     if (!destinations.some((d) => touchesHost(d, hostLower))) continue;
     const label = `Access app "${app.name}" (${app.id})`;
     const policies = app.policies || [];
+    // Settings that let requests past the app's policies: a destination's
+    // path overrides ({behavior: "public"}) and the OPTIONS bypass. No rule
+    // this audit accepts uses them, whatever its shape.
+    if ((app.destinations || []).some((d) => d && Array.isArray(d.overrides) && d.overrides.length) || app.options_preflight_bypass) {
+      problems.push(`${label}: path overrides or the OPTIONS preflight bypass let requests past Access; remove them`);
+      continue;
+    }
 
     const isSite =
       destinations.length === 2 &&
