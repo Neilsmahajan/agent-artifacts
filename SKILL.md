@@ -256,7 +256,8 @@ node <skill-dir>/scripts/share.mjs --root <root> <command>
 Commands: `list`, `share <slug> <email>...`, `unshare <slug> <email>...`,
 `link <slug>`, `unlink <slug>`, `reset-link <slug>`, `audit`, `setup-link-rule`.
 Only artifact pages can be shared. Config, tokens, unshare mechanics, limits:
-[references/sharing.md](references/sharing.md).
+[references/sharing.md](references/sharing.md). To turn sharing and comments
+on for a root, run `scripts/setup.mjs` ([SETUP.md](SETUP.md) section 8).
 
 ## Publishing rules
 

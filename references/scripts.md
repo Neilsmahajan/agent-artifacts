@@ -22,6 +22,9 @@
   A root in git publishes from a `git archive` snapshot of `HEAD`, refusing
   submodules, Git LFS and symlinks that leave the root (`--working-tree`
   publishes the files on disk instead).
+- `scripts/setup.mjs`: sets up sharing and comments for a hub: KV, D1 and
+  its schema, `sharing.config.json`, the `/_link` rule and the secrets, and
+  checks the manual steps (SETUP.md section 8). `--check` changes nothing.
 - `scripts/share.mjs`: per-page sharing helper (see [sharing.md](sharing.md)).
 - `scripts/comments.mjs`: page comment threads for agents (list, show, reply,
   resolve, reopen, export, prune, audit); `scripts/d1.mjs` is its D1 REST
@@ -30,5 +33,6 @@
   per-page sharing helpers, the removed-`visibility` check, charts, and
   anchors (plus the template-script fallback and the comment layer's rules),
   the comments worker (`comments-api.test.mjs`, SQL run against node:sqlite
-  via `d1-sqlite.mjs`), what publish stages for comments, and the browser
+  via `d1-sqlite.mjs`), what publish stages for comments, `setup.mjs` against a mocked
+  Cloudflare API (`setup-cloudflare-mock.mjs`), and the browser
   tests for Copy feedback and threads.

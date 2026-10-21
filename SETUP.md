@@ -154,22 +154,36 @@ private) and tell the owner it's live.
 
 ## 8. Sharing and comments (optional)
 
-These are scripted in a later release. Until then, set them up by hand from
-[references/sharing.md](references/sharing.md), and only if the owner said
-yes in step 2. In outline:
+Only if the owner said yes in step 2, and only for a private hub: sharing
+needs the owner-only Access app from step 7. Read
+[THREAT-MODEL.md](THREAT-MODEL.md) with the owner first, since this opens
+parts of a private site to other people.
 
-- a Workers KV namespace for link codes, plus `<your-root>/sharing.config.json`
-  (`project`, `hostname`, `accountId`, `kvNamespaceId`, `teamDomain`, `owner`,
-  and optionally `ownerName`, `siteName` and `sourceRoot`)
-- an Access-only API token: in the macOS Keychain as `cf-access-share-mac`, or
-  as `CF_ACCESS_TOKEN`, and as the Pages secret `ACCESS_API_TOKEN`
-- `node $S/share.mjs --root <your-root> setup-link-rule`, once, for secret links
-- for comments, a D1 database `<your-hub>-comments` with
-  `assets/comments/schema.sql` applied, and its id as `d1DatabaseId` in the
-  config
+`setup.mjs` does the scriptable part and checks the rest. Run it, and run it
+again after each manual step, until it exits 0:
 
-Read [THREAT-MODEL.md](THREAT-MODEL.md), if it's present, before turning
-these on: they open parts of a private site to other people.
+```bash
+S=<skill-dir>/scripts
+node $S/setup.mjs --root <your-root> --project <your-hub> --owner <owner-email> --owner-name "<your-name>"
+```
+
+- It creates the KV namespace `<your-hub>-links` (link codes) and the D1
+  database `<your-hub>-comments`, applies `assets/comments/schema.sql`, and
+  writes `<your-root>/sharing.config.json`. Add `--no-comments` to skip D1.
+- It checks the Access API token's scopes, the login methods, the site-wide
+  Access app and the team domain, creates the `/_link` rule for secret links,
+  and sets the token as the Pages secret `ACCESS_API_TOKEN`.
+- Anything it can't do it prints as `TODO` with the steps, and it exits 2.
+  The usual ones: the owner creates the Access token and stores it, typing
+  it themselves (never paste it into the chat); the owner adds the Google and
+  one-time PIN login methods; and the revoker Worker, which the first publish
+  deploys, gets its copy of the token on the next run.
+- `--check` reports and changes nothing. It's safe to run any number of
+  times; it never overwrites a value already in `sharing.config.json`.
+
+Then commit `sharing.config.json` (it holds no secrets), publish as in step
+7, and run setup.mjs once more. When it exits 0, check `node $S/share.mjs
+--root <your-root> list` and open a page to leave a test comment.
 
 ## Done
 

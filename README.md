@@ -39,7 +39,9 @@ Or clone it into your agent's skills folder, for example
 The agent asks four questions (site name, folder, public or private, sharing
 and comments), creates your artifacts root from `examples/sample-root`, and
 does a dry run. After you OK it, the agent creates the Pages project and
-publishes a demo page. See [SETUP.md](SETUP.md).
+publishes a demo page. If you want sharing and comments, `scripts/setup.mjs`
+then creates the KV namespace and D1 database, writes the config, and walks
+you through the few dashboard steps it can't do. See [SETUP.md](SETUP.md).
 
 Requirements: Node 22+, git, a Cloudflare account. `wrangler` runs through
 `npx`.
@@ -110,7 +112,7 @@ Sharing and comments open parts of a private site to other people. Read
 
 - `SKILL.md`: what the agent reads. `references/` has the long-form detail.
 - `scripts/`: build, validate, preview (`serve-artifact.mjs`), publish,
-  share, comments.
+  share, comments, and `setup.mjs` for sharing and comments.
 - `assets/`: the page template, the Pages worker (sharing, `/_link/`,
   comments), the revoker cron and the D1 schema.
 - `examples/sample-root/`: a starter root, with an `AGENTS.md` template, two
