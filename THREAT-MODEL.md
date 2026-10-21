@@ -98,10 +98,15 @@ browser never gets to say who it is.
   `hub_share` cookie (`Path=/_share/`, `Secure`, `SameSite=Strict`, 12 hours)
   and echo it in `X-Share-Token`. It's an HMAC of the owner's email and the
   expiry, keyed by the Pages secret `SHARE_COOKIE_KEY` (installs from before
-  it existed derive the key from `ACCESS_API_TOKEN`). A script on any other
-  hub page can't read a `/_share/` cookie, so even a request that got past
-  that page's CSP couldn't make a helper call. Guests never hold this
-  cookie.
+  it existed derive the key from `ACCESS_API_TOKEN`). Guests never hold this
+  cookie. It isn't a wall between hub pages, though: every page shares one
+  origin, and a cookie's path isn't a security boundary within an origin (a
+  script can `history.replaceState` to `/_share/` and read it, or call
+  `session` itself). What keeps a script on another page away from the
+  helper is that page's CSP, whose `connect-src` never names `/_share/`
+  (section 6). If a page's CSP were bypassed, its script could use the
+  Share screen helper while the owner has that page open (a guest's login
+  never passes the owner check).
 - **Comments** (`/<slug>/_comments/*`, `comments-api.js`): the owner's email
   with the site-wide audience or that page's own rule's audience is the
   owner. Deployment hash URLs get 403; only the main hostname answers.

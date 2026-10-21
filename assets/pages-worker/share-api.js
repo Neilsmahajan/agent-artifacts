@@ -16,10 +16,13 @@
 //      in the hub_share cookie (Path=/_share/, Secure, SameSite=Strict) and
 //      echoed in the X-Share-Token header. The helper mints it (an HMAC over
 //      the owner's email and an expiry, keyed by SHARE_COOKIE_KEY) on POST
-//      session. Since page comments
-//      opened a network path (connect-src /<slug>/_comments/ only), this is
-//      the second layer: a script on any other page can't read a /_share/
-//      cookie, so even a request that got past the CSP couldn't name it.
+//      session. It makes every action depend on a value minted for the
+//      owner within the last 12 hours, which nothing but a script on the
+//      site can read or echo. It is not a wall between hub pages: the cookie
+//      path isn't a security boundary inside one origin (a script elsewhere
+//      on the site can history.replaceState to /_share/ and read it, or call
+//      session itself). What keeps other pages' scripts away from this
+//      helper is their CSP: connect-src never names /_share/.
 //
 // It enforces the same rule shapes as share.mjs (same access.mjs), and the
 // API token it uses (secret ACCESS_API_TOKEN) is its own, separately revocable.

@@ -170,8 +170,10 @@ the optional `ownerName` labels the owner's comments for guests.
   (random, at least 32 characters; setup.mjs makes it). Without it the key
   is derived from `ACCESS_API_TOKEN`, as before it existed, so an older
   install keeps working; adding or changing it only ends the owner's open
-  Share screen sessions (guests never hold this cookie). A script on another page can't read a `/_share/` cookie,
-  so it couldn't call the helper even past its CSP.
+  Share screen sessions (guests never hold this cookie). The cookie's path
+  is not a boundary between hub pages (same origin); what keeps another
+  page's script from calling the helper is that page's CSP, whose
+  `connect-src` never names `/_share/`.
 - **Guests**: see threads the owner or an agent started, plus their own;
   never another guest's (the server filters threads and comments). They
   reply in, resolve and reopen only their own threads and delete only their
