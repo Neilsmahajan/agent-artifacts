@@ -171,9 +171,12 @@ async function main() {
     todo(`Pages project ${config.project} doesn't exist: create it and publish once first (SETUP.md step 7), then re-run`);
     return finish(todos);
   }
-  // A custom domain in the config wins over <project>.pages.dev.
-  config.hostname ??= project.subdomain;
+  // Sharing audits Access rules on one hostname, so the project's pages.dev
+  // address must be its only one (publish refuses otherwise).
+  given("hostname", project.subdomain);
   report("ok", `Pages project ${config.project} (${config.hostname})`);
+  const custom = (project.domains || []).filter((domain) => domain !== project.subdomain);
+  if (custom.length) todo(`Remove the project's custom domains (${custom.join(", ")}): sharing works on ${project.subdomain} only`);
 
   // ---- KV and D1 -----------------------------------------------------------
   const kvTitle = `${config.project}-links`;

@@ -24,17 +24,20 @@ as the owner with a one-time PIN.
 A private hub sits behind one site-wide Access app covering
 `<host>` and `*.<host>` (deployment hash URLs and branch aliases too), with
 one Allow policy naming only the owner. Pages serves a deployment the moment
-it lands, so `publish-pages.mjs --require-access` checks signed out that both
-the apex and a random subdomain redirect to the Access login before it
-uploads, and refuses otherwise.
+it lands, so `publish-pages.mjs --require-access` checks signed out that the
+project's pages.dev address, a random subdomain of it, and each custom domain
+redirect to the Access login before it uploads, and refuses otherwise.
 
 With sharing on, every publish and every `share.mjs` change also runs an
 audit of every Access app touching the host, and refuses on anything it
-doesn't recognize: a second site-wide app, a widened policy (groups,
+doesn't recognize: a second site-wide app, a path override or OPTIONS
+bypass that lets requests skip the policies, a widened policy (groups,
 domains, "everyone"), an untagged rule, a page rule for a page that isn't
 published (a new page with that name would inherit its guests), or a shared
 slug that is a prefix of another path (Access path matching isn't
-guaranteed to stop at a `/`). Page rules carry only the owner plus plain
+guaranteed to stop at a `/`). The audit covers one hostname, so sharing runs
+only on the project's pages.dev address, and publish refuses while the
+project has a custom domain. Page rules carry only the owner plus plain
 email addresses, the Google and one-time PIN login methods, and a two-week
 session with path-scoped cookies. Their name on the login screen is "Shared
 page", so it never names a page.

@@ -16,6 +16,9 @@ export async function loadConfig(rootDir) {
   for (const key of ["project", "hostname", "accountId", "kvNamespaceId", "owner"]) {
     if (!config[key]) throw new Error(`sharing.config.json is missing ${key}`);
   }
+  // The project's pages.dev address: the audit covers one hostname, so
+  // sharing never runs on a custom domain (publish checks it's the only one).
+  if (!/^[a-z0-9-]+\.pages\.dev$/.test(config.hostname)) throw new Error("sharing.config.json: hostname must be the project's <name>.pages.dev address");
   return config;
 }
 

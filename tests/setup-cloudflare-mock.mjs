@@ -33,7 +33,7 @@ globalThis.fetch = async (url, init = {}) => {
   let m;
   if ((m = /^pages\/projects\/([^/]+)$/.exec(route))) {
     const project = state.projects[m[1]];
-    return project ? ok({ name: m[1], subdomain: project.subdomain, deployment_configs: { production: { env_vars: Object.fromEntries(project.secrets.map((n) => [n, { type: "secret_text", value: "" }])) } } }) : missing();
+    return project ? ok({ name: m[1], subdomain: project.subdomain, domains: [project.subdomain, ...(project.custom || [])], deployment_configs: { production: { env_vars: Object.fromEntries(project.secrets.map((n) => [n, { type: "secret_text", value: "" }])) } } }) : missing();
   }
   if (route.startsWith("storage/kv/namespaces")) {
     if (method === "POST") {

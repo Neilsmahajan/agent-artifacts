@@ -14,7 +14,9 @@ node <skill-dir>/scripts/publish-pages.mjs --root <root> --project <project> --b
   staging — prints the staging directory, and stops before the project check,
   the Access probe, and wrangler. It needs no `--branch` or `--confirm-public`.
 - `--require-access` refuses to upload unless both `<project>.pages.dev` and a
-  random `*.<project>.pages.dev` subdomain redirect to the Access login. Pages
+  random `*.<project>.pages.dev` subdomain redirect to the Access login, and
+  so does each custom domain on the project. The pages.dev address is read
+  from wrangler (it is `<project>.pages.dev` unless that name was taken). Pages
   serves a deployment the moment it lands, so the check has to run first.
 - Every past deployment stays reachable at its hash URL. The Access wildcard
   covers those, but when content is removed from a site, also delete the old
@@ -49,7 +51,10 @@ Commands: `list`, `share <slug> <email>...`, `unshare <slug> <email>...`,
   kvNamespaceId, teamDomain, owner}`, plus optional `ownerName` (how guests
   see the owner's comments labelled), `siteName` (the site's name in page
   text, default the project), `sourceRoot` (where agents find the root on
-  disk, named in Copy feedback) and `d1DatabaseId` (comments). Guest lists and link codes live only in
+  disk, named in Copy feedback) and `d1DatabaseId` (comments). `hostname`
+  must be the project's pages.dev address, and the project can't have a
+  custom domain while sharing is on: the audit covers one hostname, so
+  publish refuses rather than leave another one unchecked. Guest lists and link codes live only in
   Cloudflare (Access policies, Workers KV via the wrangler login), never in git.
 - The helper's Access API token is the macOS Keychain item
   `cf-access-share-mac` (or the `CF_ACCESS_TOKEN` environment variable); the

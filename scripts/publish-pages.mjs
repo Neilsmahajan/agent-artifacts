@@ -749,22 +749,14 @@ if (args.dryRun) {
 // One project per audience, not per document. Deploying to a name that does not
 // exist yet would silently mint a new site, which is how one-off projects
 // accumulate — require the intent to be explicit.
-const projectListing = await capture("npx", [
-  "wrangler",
-  "pages",
-  "project",
-  "list",
-  "--json",
-]);
-const jsonStart = projectListing.indexOf("[");
-if (jsonStart < 0)
-  throw new Error(
-    "Could not parse `wrangler pages project list --json` output",
-  );
-const projectExists = JSON.parse(projectListing.slice(jsonStart)).some(
-  (project) => project["Project Name"] === args.project,
-);
-if (!projectExists) {
+async function listedProject() {
+  const listing = await capture("npx", ["wrangler", "pages", "project", "list", "--json"]);
+  const jsonStart = listing.indexOf("[");
+  if (jsonStart < 0) throw new Error("Could not parse `wrangler pages project list --json` output");
+  return JSON.parse(listing.slice(jsonStart)).find((project) => project["Project Name"] === args.project) || null;
+}
+let listed = await listedProject();
+if (!listed) {
   if (!args.newProject) {
     throw new Error(
       `Pages project "${args.project}" does not exist. Prefer publishing into an existing ` +
@@ -786,6 +778,21 @@ if (!projectExists) {
     // Upload project ("Missing entry-point"); --force creates it on Pages.
     "--force",
   ]);
+  listed = await listedProject();
+}
+// Every hostname that serves the project. Pages picks the pages.dev one (it
+// is <project>.pages.dev unless that name was taken), and the owner may add
+// custom domains; each one is a way in, so each is checked.
+const projectDomains = String(listed?.["Project Domains"] || "").split(/[\s,]+/).filter(Boolean).map((d) => d.toLowerCase());
+const pagesHost = projectDomains.find((d) => d.endsWith(".pages.dev")) || `${args.project}.pages.dev`;
+const customDomains = projectDomains.filter((d) => !d.endsWith(".pages.dev"));
+// Sharing audits Access rules on one hostname, so it must be the only one:
+// a rule on another hostname of the same project would go unchecked.
+if (sharing && (sharing.hostname !== pagesHost || customDomains.length)) {
+  throw new Error(
+    `sharing.config.json: hostname must be the project's pages.dev address (${pagesHost}), and the project can't have ` +
+      `custom domains while sharing is on${customDomains.length ? ` (it has ${customDomains.join(", ")})` : ""}`,
+  );
 }
 
 // A site meant to sit behind Cloudflare Access must already be behind it before
@@ -795,8 +802,9 @@ if (!projectExists) {
 // with a redirect to the Access login.
 if (args.requireAccess) {
   const probes = [
-    `https://${args.project}.pages.dev/`,
-    `https://access-probe-${Date.now().toString(36)}.${args.project}.pages.dev/`,
+    `https://${pagesHost}/`,
+    `https://access-probe-${Date.now().toString(36)}.${pagesHost}/`,
+    ...customDomains.map((domain) => `https://${domain}/`),
   ];
   for (const url of probes) {
     let response;
@@ -809,11 +817,11 @@ if (args.requireAccess) {
     if (!(response.status >= 300 && response.status < 400 && /^https:\/\/[^/]+\.cloudflareaccess\.com\//.test(location))) {
       throw new Error(
         `--require-access: ${url} answered ${response.status} without redirecting to Cloudflare Access — ` +
-          "refusing to publish. Protect the project (production hostname and *.<project>.pages.dev) first.",
+          `refusing to publish. Protect the project (${pagesHost}, *.${pagesHost}${customDomains.length ? " and its custom domains" : ""}) first.`,
       );
     }
   }
-  console.log(`Access check passed: ${args.project}.pages.dev and its subdomains redirect to the Access login`);
+  console.log(`Access check passed: ${[pagesHost, ...customDomains].join(", ")} and the pages.dev subdomains redirect to the Access login`);
 }
 
 // Per-page sharing fails closed: every Access rule touching the site must be

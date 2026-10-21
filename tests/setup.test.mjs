@@ -186,6 +186,15 @@ test("a token missing a scope, a missing login method and a public site are TODO
   assert.ok(!state().apps.length, "the /_link rule waits for the site-wide app");
 });
 
+test("a custom domain on the project is a TODO", () => {
+  const s = state();
+  s.projects.hub.custom = ["docs.example.com"];
+  setState(s);
+  const { status, output } = run(BASE);
+  assert.equal(status, 2, output);
+  assert.match(output, /Remove the project's custom domains \(docs.example.com\)/);
+});
+
 test("a value that disagrees with sharing.config.json is refused", () => {
   writeFileSync(resolve(root, "sharing.config.json"), JSON.stringify({ project: "hub", owner: "someone@example.com" }));
   const { status, output } = run(BASE);

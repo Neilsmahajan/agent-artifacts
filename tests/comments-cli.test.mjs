@@ -25,7 +25,7 @@ const schema = readFileSync(resolve(here, "../assets/comments/schema.sql"), "utf
 const OWNER = "owner@example.com";
 const MOM = "pat@example.com";
 const DAD = "dad@example.com";
-const HOST = "hub.example.dev";
+const HOST = "hub.pages.dev";
 
 const root = mkdtempSync(resolve(tmpdir(), "comments-cli-"));
 after(() => rmSync(root, { recursive: true, force: true }));
