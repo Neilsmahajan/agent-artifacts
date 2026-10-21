@@ -26,7 +26,10 @@ export async function loadConfig(rootDir) {
 export async function pageSlugs(rootDir) {
   const slugs = new Set();
   for (const entry of await readdir(rootDir, { withFileTypes: true })) {
-    if (!entry.isDirectory() || entry.name.startsWith(".") || ["archive", "notes"].includes(entry.name)) continue;
+    // Only valid slugs, never a generated path (notes, projects, ...): a rule on
+    // /projects would cover every project hub, which publish never stages
+    // from the root.
+    if (!entry.isDirectory() || !/^[a-z0-9][a-z0-9-]*$/.test(entry.name) || entry.name === "archive" || GENERATED_PATHS.includes(entry.name)) continue;
     const dir = resolve(rootDir, entry.name);
     const has = (name) => stat(resolve(dir, name)).then(() => true, () => false);
     if ((await has("index.html")) && ((await has("artifact.json")) || (await has("static-artifact.json")))) slugs.add(entry.name);

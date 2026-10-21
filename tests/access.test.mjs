@@ -161,3 +161,21 @@ test("rule bodies carry the tag and the generic name", () => {
   assert.deepEqual(body.policies[0].include, [{ email: { email: owner } }, { email: { email: "x@y.com" } }]);
   assert.throws(() => pageAppBody({ host, slug: "../x", owner, guests: [], idps }));
 });
+
+test("shareable pages never include generated paths or invalid slugs", async () => {
+  const { mkdtempSync, mkdirSync, rmSync, writeFileSync } = await import("node:fs");
+  const { tmpdir } = await import("node:os");
+  const { resolve } = await import("node:path");
+  const { pageSlugs } = await import("../scripts/sharing.mjs");
+  const root = mkdtempSync(resolve(tmpdir(), "page-slugs-"));
+  try {
+    for (const name of ["page-a", "projects", "notes", "_link", "archive", "Bad_Name"]) {
+      mkdirSync(resolve(root, name));
+      writeFileSync(resolve(root, name, "index.html"), "<!doctype html>");
+      writeFileSync(resolve(root, name, "artifact.json"), "{}");
+    }
+    assert.deepEqual([...(await pageSlugs(root))], ["page-a"]);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
