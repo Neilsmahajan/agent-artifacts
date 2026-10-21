@@ -784,7 +784,16 @@ if (!listed) {
 // is <project>.pages.dev unless that name was taken), and the owner may add
 // custom domains; each one is a way in, so each is checked.
 const projectDomains = String(listed?.["Project Domains"] || "").split(/[\s,]+/).filter(Boolean).map((d) => d.toLowerCase());
-const pagesHost = projectDomains.find((d) => d.endsWith(".pages.dev")) || `${args.project}.pages.dev`;
+const listedPagesHost = projectDomains.find((d) => d.endsWith(".pages.dev"));
+// Without the listing, nothing here knows which hostnames serve the project,
+// and a guess would leave a custom domain unprobed: refuse instead.
+if (!listedPagesHost && (sharing || args.requireAccess)) {
+  throw new Error(
+    `\`wrangler pages project list --json\` gave no pages.dev domain for "${args.project}", so the hostnames ` +
+      "that serve it are unknown — refusing to check Access or sharing against a guess",
+  );
+}
+const pagesHost = listedPagesHost || `${args.project}.pages.dev`;
 const customDomains = projectDomains.filter((d) => !d.endsWith(".pages.dev"));
 // Sharing audits Access rules on one hostname, so it must be the only one:
 // a rule on another hostname of the same project would go unchecked.
