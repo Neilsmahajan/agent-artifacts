@@ -318,7 +318,10 @@ async function main() {
     secretsChanged = true;
     report("made", `Pages secret ${name}`);
   };
-  if (token) await pagesSecret("ACCESS_API_TOKEN", token, { replace: rotate });
+  // A held rotation writes the token nowhere, not even where it's missing.
+  const hold = Boolean(args.rotate && act && !rotate);
+  if (token && hold) todo("Pages secret ACCESS_API_TOKEN: held until --rotate-token can run");
+  else if (token) await pagesSecret("ACCESS_API_TOKEN", token, { replace: rotate });
   else todo("Pages secret ACCESS_API_TOKEN waits for the Access token");
   // The Share screen's cookie key: random, made here, never shown or stored.
   await pagesSecret("SHARE_COOKIE_KEY", randomBytes(32).toString("base64url"));
@@ -328,7 +331,7 @@ async function main() {
   if (!workerSecrets) {
     todo(`The ${revoker} Worker isn't deployed yet: publish once with sharing on (it deploys it), then re-run setup.mjs to give it ACCESS_API_TOKEN`);
   } else if (workerSecrets.some((s) => s.name === "ACCESS_API_TOKEN") && !rotate) report("ok", `${revoker} secret ACCESS_API_TOKEN`);
-  else if (act && token) {
+  else if (act && token && !hold) {
     await putSecret(["secret", "put", "ACCESS_API_TOKEN", "--name", revoker], token);
     report("made", `${revoker} secret ACCESS_API_TOKEN`);
   } else todo(`${revoker} has no ACCESS_API_TOKEN secret`);

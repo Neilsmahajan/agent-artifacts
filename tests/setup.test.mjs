@@ -169,6 +169,13 @@ test("--rotate-token sets the token again on Pages and the revoker, and leaves t
   assert.equal(refused.status, 2);
   assert.match(refused.output, /not rotating until the TODOs above are done/);
   assert.equal(readFileSync(paths.npx, "utf8"), "");
+  // Not even where the token is missing.
+  const missing = state();
+  missing.projects.hub.secrets = ["SHARE_COOKIE_KEY"];
+  missing.workers["hub-revoker"].secrets = [];
+  setState(missing);
+  assert.equal(run([...BASE, "--rotate-token"]).status, 2);
+  assert.equal(readFileSync(paths.npx, "utf8"), "");
 });
 
 test("--check reports what it would do and changes nothing", () => {
