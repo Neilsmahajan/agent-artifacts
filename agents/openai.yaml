@@ -1,0 +1,4 @@
+interface:
+  display_name: "Publish Cloudflare Artifact"
+  short_description: "Build and publish shareable plan websites"
+  default_prompt: "Use $publish-cloudflare-artifact to turn this implementation plan into a polished reviewable website."

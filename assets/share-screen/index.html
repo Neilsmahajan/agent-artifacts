@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Share pages</title>
+    <link rel="stylesheet" href="./share.css" />
+    <script src="./share.js" defer></script>
+  </head>
+  <body>
+    <header>
+      <h1>Share pages</h1>
+      <p class="lede">Give named people access to one page, or make a secret link anyone can open. Only you can use this screen.</p>
+      <p id="status" role="status" aria-live="polite">Loading…</p>
+      <ul id="problems" class="problems" hidden></ul>
+    </header>
+    <main>
+      <section class="list-pane" aria-label="Pages">
+        <input id="search" type="search" placeholder="Search pages…" aria-label="Search pages" autocomplete="off" />
+        <ol id="pages"></ol>
+      </section>
+      <section id="detail" class="detail-pane" aria-live="polite" hidden>
+        <p class="crumb"><a id="open-page" target="_blank" rel="noopener">Open page ↗</a></p>
+        <h2 id="title"></h2>
+        <p id="slug" class="mono"></p>
+        <div id="warnings"></div>
+
+        <h3>People</h3>
+        <p class="hint">They sign in with Google (one click) or a 6-digit email code, and can open only this page. Signed in for 2 weeks.</p>
+        <ul id="guests" class="guests"></ul>
+        <div id="files" class="files" hidden>
+          <p><strong>This hand-built page shares its whole folder:</strong></p>
+          <ul id="file-list" class="mono"></ul>
+          <label><input id="files-ok" type="checkbox" /> I've checked these files are fine to share</label>
+        </div>
+        <form id="share-form" class="row">
+          <input id="emails" type="text" placeholder="email@example.com, another@example.com" aria-label="Email addresses" autocomplete="off" />
+          <button type="submit">Share</button>
+        </form>
+        <div class="row">
+          <button type="button" id="copy-people">Copy link + message</button>
+        </div>
+
+        <h3>Anyone with the link</h3>
+        <p class="hint">No sign-in. Anyone the link is forwarded to can read the page, and there's no record of who opened it. Revoking stops it shortly (usually within a minute).</p>
+        <div id="link-off" class="row">
+          <button type="button" id="link-create">Create link</button>
+        </div>
+        <div id="link-on" hidden>
+          <p class="mono link" id="link-url"></p>
+          <div class="row">
+            <button type="button" id="copy-link">Copy link + message</button>
+            <button type="button" id="link-reset" class="secondary">Reset link</button>
+            <button type="button" id="link-off-btn" class="danger">Turn off</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

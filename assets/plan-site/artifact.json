@@ -1,0 +1,125 @@
+{
+  "title": "Implementation Plan",
+  "eyebrow": "Review artifact",
+  "summary": "A concise, reviewable path from the current state to a dependable release.",
+  "status": "Draft",
+  "lifecycle": "draft",
+  "updated": "2026-07-25",
+  "owner": "Project team",
+  "version": "0.1",
+  "progressCaption": "Calculated from completed tasks in this plan.",
+  "highlights": [
+    {
+      "label": "Outcome",
+      "value": "A validated first release"
+    },
+    {
+      "label": "Approach",
+      "value": "Small, reviewable increments"
+    },
+    {
+      "label": "Primary constraint",
+      "value": "Protect existing behavior"
+    },
+    {
+      "label": "Review point",
+      "value": "Before external launch"
+    }
+  ],
+  "phases": [
+    {
+      "name": "Frame the work",
+      "summary": "Confirm the outcome, constraints, and evidence of success.",
+      "status": "in progress",
+      "tasks": [
+        {
+          "title": "Document the current state",
+          "detail": "Capture relevant behavior, interfaces, and ownership.",
+          "done": true
+        },
+        {
+          "title": "Agree on acceptance criteria",
+          "detail": "Make each criterion observable and testable.",
+          "done": false
+        }
+      ]
+    },
+    {
+      "name": "Build the smallest complete slice",
+      "summary": "Implement the core path without adding speculative surface area.",
+      "status": "planned",
+      "tasks": [
+        {
+          "title": "Implement the primary workflow",
+          "done": false
+        },
+        {
+          "title": "Cover failure and empty states",
+          "done": false
+        }
+      ]
+    },
+    {
+      "name": "Verify and release",
+      "summary": "Test the result in realistic conditions and prepare a reversible rollout.",
+      "status": "planned",
+      "tasks": [
+        {
+          "title": "Run automated and manual checks",
+          "done": false
+        },
+        {
+          "title": "Review rollout and rollback steps",
+          "done": false
+        }
+      ]
+    }
+  ],
+  "architecture": [
+    {
+      "label": "Source context",
+      "detail": "Requirements, existing behavior, and constraints."
+    },
+    {
+      "label": "Implementation",
+      "detail": "The smallest change set that satisfies the agreed outcome."
+    },
+    {
+      "label": "Verification",
+      "detail": "Automated checks, rendered review, and release evidence."
+    }
+  ],
+  "decisions": [
+    {
+      "title": "Prefer incremental delivery",
+      "decision": "Ship one end-to-end slice before broadening scope.",
+      "rationale": "It reveals integration risk earlier and keeps review concrete."
+    },
+    {
+      "title": "Keep deployment reversible",
+      "decision": "Use versioned releases and preserve a known-good rollback target.",
+      "rationale": "A release should not turn uncertainty into an outage."
+    }
+  ],
+  "risks": [
+    {
+      "title": "Hidden compatibility assumptions",
+      "severity": "high",
+      "description": "Existing consumers may rely on behavior that is not documented.",
+      "mitigation": "Inspect current callers and add characterization tests before changing interfaces."
+    },
+    {
+      "title": "Scope expansion",
+      "severity": "medium",
+      "description": "Adjacent improvements could delay the core outcome.",
+      "mitigation": "Track optional ideas separately and require an explicit scope decision."
+    }
+  ],
+  "nextActions": [
+    "Confirm the acceptance criteria with the project owner.",
+    "Identify the first end-to-end implementation slice.",
+    "Assign verification owners before development begins."
+  ],
+  "links": [],
+  "footer": "Generated as a reviewable implementation artifact."
+}

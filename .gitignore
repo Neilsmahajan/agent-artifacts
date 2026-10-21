@@ -1,0 +1,8 @@
+# wrangler caches (they hold the Cloudflare account id)
+.wrangler/
+**/.wrangler/
+node_modules/
+.DS_Store
+# a sample root built locally
+examples/sample-root/**/index.html
+examples/sample-root/**/artifact.md

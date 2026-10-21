@@ -1,0 +1,74 @@
+{
+  "title": "Welcome to your artifact hub",
+  "eyebrow": "Demo · getting started",
+  "project": "demo",
+  "lifecycle": "active",
+  "tags": ["demo", "getting-started"],
+  "summary": "A sample page built from artifact.json. Your agent writes pages like this one from plans, reviews and research, publishes them to your own Cloudflare Pages site, and reads your feedback back from the page.",
+  "status": "Demo page",
+  "updated": "2026-10-20",
+  "owner": "You",
+  "version": "1.0",
+  "highlights": [
+    { "label": "Source", "value": "welcome/artifact.json" },
+    { "label": "Built files", "value": "index.html and artifact.md" },
+    { "label": "Hosting", "value": "Cloudflare Pages, free tier" }
+  ],
+  "sections": [
+    {
+      "id": "what-this-is",
+      "title": "What this page is",
+      "kicker": "Start here",
+      "paragraphs": [
+        "Every artifact is a folder in your artifacts root. The source is `artifact.json`. The build turns it into a self-contained `index.html` for people and an `artifact.md` twin for agents, which costs them far less to read.",
+        "Agents edit the JSON, never the HTML. The validator rebuilds the page and refuses to publish anything that doesn't match its source."
+      ]
+    },
+    {
+      "id": "feedback-loop",
+      "title": "The feedback loop",
+      "kicker": "Try it",
+      "cards": [
+        {
+          "id": "loop-comment",
+          "title": "1. Comment on a block",
+          "detail": "Tap Comment (bottom left), then any paragraph, card or task, and write a note. Notes stay in your browser."
+        },
+        {
+          "id": "loop-copy",
+          "title": "2. Copy feedback",
+          "detail": "Copy feedback turns your notes into one block, and each note names the block's stable anchor. Paste it into your agent."
+        },
+        {
+          "id": "loop-agent",
+          "title": "3. The agent updates the page",
+          "detail": "The agent finds each anchor in artifact.json, makes the edit, then rebuilds, validates and republishes. With comments turned on, threads are saved on the site and the agent replies and resolves them itself."
+        }
+      ]
+    },
+    {
+      "id": "next",
+      "title": "What to ask for next",
+      "bullets": [
+        "\"Make an artifact page for <topic>.\"",
+        "\"Update the demo status note: <what changed>.\"",
+        "\"Publish my artifacts.\"",
+        "\"Archive the welcome page.\""
+      ]
+    }
+  ],
+  "phases": [
+    {
+      "name": "Set up",
+      "summary": "What SETUP.md walks your agent through.",
+      "status": "in progress",
+      "tasks": [
+        { "title": "Pick a site name and an artifacts folder", "done": true },
+        { "title": "Build and validate this page", "done": true },
+        { "title": "Publish to Cloudflare Pages", "done": false }
+      ]
+    }
+  ],
+  "nextActions": ["Replace this page with your first real artifact, or archive it."],
+  "footer": "Sample artifact from the publish-cloudflare-artifact skill."
+}

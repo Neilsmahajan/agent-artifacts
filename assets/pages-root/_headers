@@ -1,0 +1,16 @@
+/*
+  X-Robots-Tag: noindex, nofollow
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  Content-Security-Policy: default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'
+
+# Built artifacts inline their own CSS and JS so that one file renders anywhere —
+# a gist proxy, an email attachment, a local path — with no second request. That
+# inlining is incompatible with script-src 'self', hence 'unsafe-inline'.
+#
+# Everything the artifact does not need is denied instead. default-src 'none'
+# blocks subresource types not listed, and connect-src 'none' blocks fetch,
+# XHR, WebSocket, and beacons, so a built page cannot exfiltrate anything.
+# Same-origin images and fonts stay allowed for future artifacts that need them,
+# and ordinary link navigation is unaffected by CSP.
