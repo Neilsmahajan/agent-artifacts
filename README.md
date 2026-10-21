@@ -21,10 +21,14 @@ agent can act on the comments.
 
 It works with Claude Code, Codex and other agents that read `SKILL.md` skills.
 
+**Demo:** [agent-artifacts-demo.pages.dev](https://agent-artifacts-demo.pages.dev/welcome/)
+is the sample root, published as a public site. Try Comment, then Copy
+feedback.
+
 ## Install
 
 ```bash
-npx skills add <owner>/<repo>
+npx skills add Neilsmahajan/agent-artifacts
 ```
 
 Or clone it into your agent's skills folder, for example

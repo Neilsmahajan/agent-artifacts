@@ -3,16 +3,28 @@
   "eyebrow": "Demo · getting started",
   "project": "demo",
   "lifecycle": "active",
-  "tags": ["demo", "getting-started"],
+  "tags": [
+    "demo",
+    "getting-started"
+  ],
   "summary": "A sample page built from artifact.json. Your agent writes pages like this one from plans, reviews and research, publishes them to your own Cloudflare Pages site, and reads your feedback back from the page.",
   "status": "Demo page",
   "updated": "2026-10-20",
   "owner": "You",
   "version": "1.0",
   "highlights": [
-    { "label": "Source", "value": "welcome/artifact.json" },
-    { "label": "Built files", "value": "index.html and artifact.md" },
-    { "label": "Hosting", "value": "Cloudflare Pages, free tier" }
+    {
+      "label": "Source",
+      "value": "welcome/artifact.json"
+    },
+    {
+      "label": "Built files",
+      "value": "index.html and artifact.md"
+    },
+    {
+      "label": "Hosting",
+      "value": "Cloudflare Pages, free tier"
+    }
   ],
   "sections": [
     {
@@ -63,12 +75,33 @@
       "summary": "What SETUP.md walks your agent through.",
       "status": "in progress",
       "tasks": [
-        { "title": "Pick a site name and an artifacts folder", "done": true },
-        { "title": "Build and validate this page", "done": true },
-        { "title": "Publish to Cloudflare Pages", "done": false }
+        {
+          "title": "Pick a site name and an artifacts folder",
+          "done": true
+        },
+        {
+          "title": "Build and validate this page",
+          "done": true
+        },
+        {
+          "title": "Publish to Cloudflare Pages",
+          "done": false
+        }
       ]
     }
   ],
-  "nextActions": ["Replace this page with your first real artifact, or archive it."],
-  "footer": "Sample artifact from the publish-cloudflare-artifact skill."
+  "nextActions": [
+    "Replace this page with your first real artifact, or archive it."
+  ],
+  "footer": "Sample artifact from the publish-cloudflare-artifact skill.",
+  "links": [
+    {
+      "label": "The skill on GitHub",
+      "url": "https://github.com/Neilsmahajan/agent-artifacts"
+    },
+    {
+      "label": "Setup guide (SETUP.md)",
+      "url": "https://github.com/Neilsmahajan/agent-artifacts/blob/main/SETUP.md"
+    }
+  ]
 }
