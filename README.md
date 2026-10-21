@@ -106,11 +106,12 @@ starting at `notes/<project>/status.md` or with
   script reach that page's own comments endpoint and nothing else.
 
 Sharing and comments open parts of a private site to other people. Read
-[THREAT-MODEL.md](THREAT-MODEL.md) before turning them on, if it's present.
+[THREAT-MODEL.md](THREAT-MODEL.md) before turning them on.
 
 ## Layout
 
 - `SKILL.md`: what the agent reads. `references/` has the long-form detail.
+- `THREAT-MODEL.md`: the security boundaries and what they don't cover.
 - `scripts/`: build, validate, preview (`serve-artifact.mjs`), publish,
   share, comments, and `setup.mjs` for sharing and comments.
 - `assets/`: the page template, the Pages worker (sharing, `/_link/`,
