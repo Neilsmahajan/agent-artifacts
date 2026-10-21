@@ -53,7 +53,8 @@ Commands: `list`, `share <slug> <email>...`, `unshare <slug> <email>...`,
   Cloudflare (Access policies, Workers KV via the wrangler login), never in git.
 - The helper's Access API token is the macOS Keychain item
   `cf-access-share-mac` (or the `CF_ACCESS_TOKEN` environment variable); the
-  Share screen uses the `ACCESS_API_TOKEN` Pages secret (set once).
+  Share screen uses the `ACCESS_API_TOKEN` Pages secret (set once). Its
+  scopes are below.
 - When `sharing.config.json` names the project, every publish runs a
   fail-closed Access audit: it refuses on unknown, widened, or orphaned rules or
   links. `share.mjs audit` runs the same check on demand, and `share` refuses
@@ -70,6 +71,30 @@ Commands: `list`, `share <slug> <email>...`, `unshare <slug> <email>...`,
 - Known limit: two simultaneous edits of the same page's guest list (Share
   screen and share.mjs at the same moment) can undo each other. Both read the
   list back after writing and fail loudly if the change didn't stick.
+
+## The Access API token
+
+One custom API token (My Profile → API Tokens → Create Token → Custom
+token), scoped to the hub's account only, with exactly these account
+permissions:
+
+| Permission | Level | Used for |
+|---|---|---|
+| Access: Apps and Policies | Edit | listing, creating, updating and deleting page rules and the `/_link` rule; `revoke_tokens` on a page rule when someone is unshared |
+| Access: Tags | Edit | the `per-page-sharing` tag every page rule carries (created once) |
+| Access: Organizations, Identity Providers, and Groups | Edit | `organizations/revoke_user`, which ends an unshared guest's sessions everywhere; it also covers reading the login methods (only read is needed for those) and the team domain |
+
+Nothing else: no zone, DNS, Pages, Workers, KV or D1 permissions. Those go
+through the wrangler login. The same token is in three places: the Keychain
+or `CF_ACCESS_TOKEN` (share.mjs, comments.mjs, publish's audit), the Pages
+secret `ACCESS_API_TOKEN` (the Share screen and the comments worker's live
+guest check), and the revoker Worker's `ACCESS_API_TOKEN` secret.
+`setup.mjs` checks the scopes it can without changing anything (it signs out
+a made-up address to prove the `revoke_user` one) and sets both secrets. To
+rotate it: roll it in the dashboard, store the new value, then set both
+secrets again (`npx wrangler pages secret put ACCESS_API_TOKEN --project-name
+<project>` and `npx wrangler secret put ACCESS_API_TOKEN --name
+<project>-revoker`, value on stdin) and publish.
 
 ## Who can open what
 

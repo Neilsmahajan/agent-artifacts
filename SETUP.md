@@ -173,6 +173,16 @@ node $S/setup.mjs --root <your-root> --project <your-hub> --owner <owner-email> 
 - It checks the Access API token's scopes, the login methods, the site-wide
   Access app and the team domain, creates the `/_link` rule for secret links,
   and sets the token as the Pages secret `ACCESS_API_TOKEN`.
+- The Access API token is a custom token on the owner's account with three
+  account permissions, and nothing else:
+  - Access: Apps and Policies — Edit (page rules and the `/_link` rule)
+  - Access: Tags — Edit (the tag those rules carry)
+  - Access: Organizations, Identity Providers, and Groups — Edit (signing
+    people out when a page is unshared; it also covers reading the login
+    methods, which only needs read)
+
+  [references/sharing.md](references/sharing.md#the-access-api-token) says
+  what each is for and how to rotate the token.
 - Anything it can't do it prints as `TODO` with the steps, and it exits 2.
   The usual ones: the owner creates the Access token and stores it, typing
   it themselves (never paste it into the chat); the owner adds the Google and
