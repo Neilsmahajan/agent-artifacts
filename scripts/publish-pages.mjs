@@ -15,6 +15,7 @@
 
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
+import { rmSync } from "node:fs";
 import {
   cp,
   mkdtemp,
@@ -43,6 +44,19 @@ import {
   validateNote,
 } from "./notes.mjs";
 import { esc } from "./render.mjs";
+
+// Scratch directories (the git snapshot, the staged site, wrangler configs)
+// are removed when the process exits, however it exits; a dry run keeps its
+// staged site for inspection.
+const scratchDirs = [];
+process.on("exit", () => {
+  for (const dir of scratchDirs) rmSync(dir, { recursive: true, force: true });
+});
+async function scratchDir(prefix, { keep = false } = {}) {
+  const dir = await mkdtemp(resolve(tmpdir(), prefix));
+  if (!keep) scratchDirs.push(dir);
+  return dir;
+}
 
 function usage() {
   console.log(
@@ -359,7 +373,7 @@ for (const artifact of artifacts) {
 // Only the built page and its source JSON are uploaded. Staging keeps stray
 // local files in an artifact directory from being published by accident.
 
-const staging = await mkdtemp(resolve(tmpdir(), "artifact-publish-"));
+const staging = await scratchDir("artifact-publish-", { keep: args.dryRun });
 for (const artifact of artifacts) {
   const dest = resolve(staging, artifact.slug);
   await mkdir(dest, { recursive: true });
@@ -859,7 +873,7 @@ console.log(`Publishing to ${args.project} on branch ${args.branch}`);
 // for link codes); other deploys run as before, with no config file.
 let deployCwd;
 if (sharing) {
-  deployCwd = await mkdtemp(resolve(tmpdir(), "artifact-deploy-"));
+  deployCwd = await scratchDir("artifact-deploy-");
   await writeFile(
     resolve(deployCwd, "wrangler.toml"),
     `name = "${args.project}"
@@ -900,7 +914,7 @@ await run(
 // has a once-a-minute cron. Redeployed with every publish so it never drifts
 // from access.mjs. Its ACCESS_API_TOKEN secret is set once, by hand.
 if (sharing && args.branch === "main") {
-  const revokerDir = await mkdtemp(resolve(tmpdir(), "artifact-revoker-"));
+  const revokerDir = await scratchDir("artifact-revoker-");
   await cp(resolve(skillDir, "assets/revoker-worker/index.js"), resolve(revokerDir, "index.js"));
   await cp(resolve(skillDir, "assets/pages-worker/access.mjs"), resolve(revokerDir, "access.mjs"));
   await writeFile(
@@ -1294,7 +1308,7 @@ async function snapshotHead(dir) {
     .split("\n")
     .filter(Boolean);
   const head = (await capture("git", ["-C", dir, "rev-parse", "--short", "HEAD"])).trim();
-  const snapshot = await mkdtemp(resolve(tmpdir(), "artifact-snapshot-"));
+  const snapshot = await scratchDir("artifact-snapshot-");
   await new Promise((resolvePromise, rejectPromise) => {
     // Run from the top level: in a subdirectory, git archive filters the tree
     // to paths under the current directory and would extract nothing.

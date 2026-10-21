@@ -1,12 +1,12 @@
+<!-- Setup: replace <Your name>/<your name>, <your-hub>, <your-root> (this
+     folder) and <skill-dir> (where the skill is installed), keep one
+     Publishing block, then delete every setup comment. -->
+
 # <Your name>'s artifacts root
 
 Durable context for <your name>'s projects: **notes** for living context and
 **artifacts** for plans, reports and decisions. Published to
 `<your-hub>.pages.dev` by the `publish-cloudflare-artifact` skill.
-
-<!-- Setup fills in the placeholders: <your-hub>, <your-root> (this folder),
-     <skill-dir> (where the skill is installed) and the visibility line in
-     Publishing. Delete this comment afterwards. -->
 
 ## Reading (agents)
 
@@ -41,14 +41,23 @@ Projects in use: `demo`. Reuse one; add a new project only when asked.
 
 ## Publishing
 
+Commit before publishing: a root in git publishes a snapshot of `HEAD`.
+
+<!-- Private hub: keep this block. -->
+The hub is behind Cloudflare Access. Always pass `--require-access`, so publish
+refuses to upload if the site answers without the login. A public page needs
+its own Pages project and <your name>'s explicit OK.
+
 ```bash
 S=<skill-dir>/scripts
 node $S/publish-pages.mjs --root <your-root> --project <your-hub> --branch main --confirm-public --require-access
 ```
 
-- Private hub (behind Cloudflare Access): always pass `--require-access`, so
-  publish refuses to upload if the site answers without the login. A public
-  page needs its own Pages project and the owner's explicit OK.
-- Public hub: drop `--require-access`. Everything in this root is then
-  readable by anyone, so keep private details out.
-- Commit before publishing: a root in git publishes a snapshot of `HEAD`.
+<!-- Public hub: keep this block instead. -->
+The hub is public: everything published from this root is readable by
+anyone, so keep private details out.
+
+```bash
+S=<skill-dir>/scripts
+node $S/publish-pages.mjs --root <your-root> --project <your-hub> --branch main --confirm-public
+```

@@ -20,21 +20,23 @@ If any of these fail, tell the owner what's missing and stop.
 
 Ask these in one message, with the defaults shown:
 
-1. **Site name**: the Cloudflare Pages project, which becomes
+1. **Your name**: how the root's `AGENTS.md` and comment labels refer to the
+   owner. Use the name you already know, if you know it.
+2. **Site name**: the Cloudflare Pages project, which becomes
    `<name>.pages.dev`. It must be lowercase letters, digits and dashes, and
    unique on Pages, so suggest something like `<first-name>-hub`.
-2. **Folder**: where the artifacts live on disk (default `~/artifacts`). It
+3. **Folder**: where the artifacts live on disk (default `~/artifacts`). It
    must be a durable folder, never a temp folder.
-3. **Public or private**: *private* (the default) puts the whole site behind a
+4. **Public or private**: *private* (the default) puts the whole site behind a
    Cloudflare Access login, so only the owner can open it. *Public* means
    anyone with the URL can read everything published.
-4. **Sharing and comments**: should pages be shareable with named people or
+5. **Sharing and comments**: should pages be shareable with named people or
    by secret link, with comment threads saved on the site? Default *not yet*.
    They need extra Cloudflare resources (KV, D1, an Access API token), and
    setting them up is a separate step (section 8).
 
-Write the answers down as `<your-hub>` (site name), `<your-root>` (folder,
-expanded to an absolute path) and the two choices.
+Write the answers down as `<your-name>`, `<your-hub>` (site name),
+`<your-root>` (folder, expanded to an absolute path) and the two choices.
 
 ## 3. Create the root
 
@@ -43,9 +45,13 @@ mkdir -p <your-root>            # must be empty or new
 cp -R <skill-dir>/examples/sample-root/. <your-root>/
 ```
 
-Then edit `<your-root>/AGENTS.md`. Replace `<Your name>`, `<your-hub>`,
-`<your-root>` and `<skill-dir>`, keep only the Publishing bullet that matches
-public or private, and delete the setup comment.
+Then edit `<your-root>/AGENTS.md`:
+
+- Replace `<Your name>` / `<your name>`, `<your-hub>`, `<your-root>` and
+  `<skill-dir>`. Leave the generic `<project>`, `<slug>` and `<topic>` as
+  they are.
+- In Publishing, keep only the block that matches public or private.
+- Delete the setup comment.
 
 Build and validate the sample:
 
@@ -66,9 +72,10 @@ git -C <your-root> commit -m "Artifacts root from the publish-cloudflare-artifac
 
 ## 4. Tell future sessions where the root is
 
-Add this to the owner's global agent instructions, such as `~/.claude/CLAUDE.md`
-or `~/.codex/AGENTS.md`, filled in. Show it to the owner first, since it's
-their file:
+Append this, filled in, to the owner's global agent instructions:
+`~/.claude/CLAUDE.md` for Claude Code, `~/.codex/AGENTS.md` for Codex. Create
+the file if it's missing, and never overwrite what's already there. Show the
+text to the owner first, since it's their file:
 
 ```markdown
 Published pages (the `publish-cloudflare-artifact` skill): my default root is
@@ -83,12 +90,14 @@ For a private hub, add this as well: `Never publish this root without
 ## 5. Dry run
 
 ```bash
+S=<skill-dir>/scripts
 node $S/publish-pages.mjs --root <your-root> --project <your-hub> --dry-run
 ```
 
-This builds and checks everything and stages the site, but contacts nothing.
-It must end with `Dry run: staged site at ...`. Fix anything it reports
-before going on.
+This builds and checks everything and stages the site, but contacts nothing,
+so it doesn't check Access either: `--require-access` is first tested in
+step 7. It must end with `Dry run: staged site at <dir>`. Fix anything it
+reports, then delete `<dir>`.
 
 ## 6. Log in to Cloudflare
 
@@ -113,9 +122,11 @@ npx wrangler pages project create <your-hub> --production-branch main --force
 **Private**: set up Access before the first upload. Pages serves a deployment
 the moment it lands, so the login has to be in place first.
 
-1. The owner opens Cloudflare Zero Trust (the free plan is enough) and picks a
-   team name.
-2. Add a self-hosted Access application covering `<your-hub>.pages.dev` and
+1. The owner opens Cloudflare Zero Trust from the dashboard and picks a team
+   name. The free plan is enough, though signing up may ask for a payment
+   method.
+2. Under Access, Applications, Add an application, Self-hosted, add an
+   application covering `<your-hub>.pages.dev` and
    `*.<your-hub>.pages.dev`, with one Allow policy that includes only the
    owner's email address. One-time PIN login works out of the box, and Google
    login is optional.
@@ -123,9 +134,11 @@ the moment it lands, so the login has to be in place first.
    a redirect to `<team>.cloudflareaccess.com`. A brand-new project can answer
    404 until its first deploy, so check this again after publishing.
 
-Then publish:
+Then publish. `--confirm-public` is required on every upload, private or not.
+It confirms you know this writes to a live site:
 
 ```bash
+S=<skill-dir>/scripts
 # private
 node $S/publish-pages.mjs --root <your-root> --project <your-hub> --branch main --confirm-public --require-access
 # public
