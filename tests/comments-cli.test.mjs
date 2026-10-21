@@ -146,7 +146,8 @@ test("show fences guest text and says what an approval covers", async () => {
 });
 
 test("an export with no guest text ends with the plain instruction", () => {
-  thread("t_own000000001", OWNER, "owner", "Tighten the intro.");
+  // Even when the owner writes about the fence itself.
+  thread("t_own000000001", OWNER, "owner", "Tighten the intro and the ```untrusted-guest-text example.");
   const out = run("export", "--slug", "page").out;
   assert.doesNotMatch(out, /Text marked untrusted/);
   assert.match(out, /\nAgent: edit artifact\.json to address these\./);
