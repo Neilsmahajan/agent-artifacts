@@ -7,7 +7,8 @@ export const secretPatterns = [
   // The tokens and keys this skill itself uses, as shell, env or JSON
   // assignments ("ACCESS_API_TOKEN": "...").
   ["Cloudflare API token assignment", /\b(?:CLOUDFLARE_API_TOKEN|CF_ACCESS_TOKEN|ACCESS_API_TOKEN)['"]?\s*[:=]\s*['"]?[A-Za-z0-9_-]{20,}/i],
-  ["Share cookie key assignment", /\bSHARE_COOKIE_KEY['"]?\s*[:=]\s*['"]?[A-Za-z0-9_-]{20,}/i],
+  // Any random string works as the cookie key, so base64's + / = too.
+  ["Share cookie key assignment", /\bSHARE_COOKIE_KEY['"]?\s*[:=]\s*['"]?[A-Za-z0-9_+/=-]{20,}/i],
   ["generic bearer token", /\bAuthorization\s*:\s*Bearer\s+[A-Za-z0-9._~+/-]{20,}/i],
   ["GitHub token", /\bgh[pousr]_[A-Za-z0-9]{30,}\b/],
   ["OpenAI API key", /\bsk-[A-Za-z0-9_-]{20,}\b/],

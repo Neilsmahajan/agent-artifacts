@@ -17,6 +17,8 @@ test("the skill's own secrets are caught in every assignment form", () => {
       assert.ok(findSecrets(text).length, `${text} was not caught`);
     }
   }
+  // A cookie key set by hand may be plain base64.
+  assert.ok(findSecrets("SHARE_COOKIE_KEY=+q3x9VbN/2mK7pL4tR8wY1cF6hJ0sD5gA==").length);
 });
 
 test("naming a secret in prose is not a secret", () => {
