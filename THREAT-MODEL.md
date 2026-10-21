@@ -184,8 +184,9 @@ run. What keeps that from happening, and limits it if it does:
   and the revoker) has Access: Apps and Policies, Tags, and Organizations
   (for `revoke_user`). Those scopes are account-wide: a leaked token could
   rewrite any Access app on the account, not only the hub's, or sign anyone
-  out. It has no DNS, Pages, Workers or D1 access. Rotate it in the dashboard
-  and re-run `setup.mjs` if it might have leaked.
+  out. It has no DNS, Pages, Workers or D1 access. If it might have leaked,
+  roll it in the dashboard, store the new value, and run `setup.mjs
+  --rotate-token`, then publish.
 - **A D1-only token** (`CLOUDFLARE_API_TOKEN`, used by `scripts/d1.mjs`)
   is what a comment-handling agent should get instead of the wrangler login:
   [references/sharing.md](references/sharing.md#a-d1-only-token-for-agents).

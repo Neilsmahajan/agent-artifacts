@@ -98,10 +98,12 @@ screen's cookie key is a separate secret (`SHARE_COOKIE_KEY`, below), so
 the token never doubles as a signing key.
 `setup.mjs` checks the scopes it can without changing anything (it signs out
 a made-up address to prove the `revoke_user` one) and sets both secrets. To
-rotate it: roll it in the dashboard, store the new value, then set both
-secrets again (`npx wrangler pages secret put ACCESS_API_TOKEN --project-name
-<project>` and `npx wrangler secret put ACCESS_API_TOKEN --name
-<project>-revoker`, value on stdin) and publish.
+rotate it: roll it in the dashboard, store the new value (Keychain or
+`CF_ACCESS_TOKEN`), run `setup.mjs --root <root> --rotate-token`, and
+publish. A plain re-run leaves secrets that are already set alone, because
+their values can't be read back; `--rotate-token` sets the token on the Pages
+project and the revoker again, and only once every check has passed with
+the new one.
 
 ## A D1-only token for agents
 

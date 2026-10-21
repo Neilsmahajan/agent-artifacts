@@ -147,6 +147,30 @@ test("a re-run creates nothing twice, and finishes once the revoker is deployed"
   assert.match(output, /Sharing and comments are set up/);
 });
 
+test("--rotate-token sets the token again on Pages and the revoker, and leaves the cookie key", () => {
+  const s = state();
+  s.projects.hub.secrets = ["ACCESS_API_TOKEN", "SHARE_COOKIE_KEY"];
+  s.workers["hub-revoker"] = { secrets: ["ACCESS_API_TOKEN"] };
+  setState(s);
+  assert.equal(run(BASE).status, 0);
+  assert.equal(readFileSync(paths.npx, "utf8"), "", "a plain re-run leaves set secrets alone");
+  const { status, output } = run([...BASE, "--rotate-token"]);
+  assert.equal(status, 0, output);
+  assert.equal(
+    readFileSync(paths.npx, "utf8"),
+    `wrangler pages secret put ACCESS_API_TOKEN --project-name hub :: ${ACCESS_TOKEN}\nwrangler secret put ACCESS_API_TOKEN --name hub-revoker :: ${ACCESS_TOKEN}\n`,
+  );
+  // A token that fails a check is never pushed.
+  writeFileSync(paths.npx, "");
+  const denied = state();
+  denied.denied = ["access/organizations/revoke_user"];
+  setState(denied);
+  const refused = run([...BASE, "--rotate-token"]);
+  assert.equal(refused.status, 2);
+  assert.match(refused.output, /not rotating until the TODOs above are done/);
+  assert.equal(readFileSync(paths.npx, "utf8"), "");
+});
+
 test("--check reports what it would do and changes nothing", () => {
   const { status, output } = run([...BASE, "--check"]);
   assert.equal(status, 2, output);

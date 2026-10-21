@@ -4,7 +4,7 @@
 //
 //   node setup.mjs --root <root> --project <project> --owner <email>
 //                  [--owner-name <name>] [--site-name <name>] [--source-root <path>]
-//                  [--account-id <id>] [--no-comments] [--check]
+//                  [--account-id <id>] [--no-comments] [--check] [--rotate-token]
 //
 // Does what can be scripted, and checks the rest:
 //
@@ -22,7 +22,10 @@
 // What it can't do (create the Access token, add login methods, create the
 // site-wide Access app) it prints as a TODO with the steps. Re-run it after
 // doing them; it's safe to run any number of times. --check reports and
-// changes nothing.
+// changes nothing. A secret that's already set is left alone (its value
+// can't be read back), so after rolling the Access token, store the new one
+// and run with --rotate-token: it sets ACCESS_API_TOKEN on the Pages project
+// and the revoker again.
 //
 // Exit status: 0 when everything is in place, 2 when TODOs remain, 1 on an
 // error. Cloudflare calls use the wrangler login (d1.mjs) for the account's
@@ -69,6 +72,7 @@ function parseArgs(argv) {
       args[valued[arg]] = argv[(i += 1)];
     } else if (arg === "--no-comments") args.comments = false;
     else if (arg === "--check") args.check = true;
+    else if (arg === "--rotate-token") args.rotate = true;
     else if (arg === "--help" || arg === "-h") args.help = true;
     else throw new Error(`Unknown argument: ${arg}`);
   }
@@ -76,7 +80,7 @@ function parseArgs(argv) {
 }
 
 const USAGE =
-  "Usage: setup.mjs --root <root> --project <project> --owner <email> [--owner-name <name>] [--site-name <name>] [--source-root <path>] [--account-id <id>] [--no-comments] [--check]";
+  "Usage: setup.mjs --root <root> --project <project> --owner <email> [--owner-name <name>] [--site-name <name>] [--source-root <path>] [--account-id <id>] [--no-comments] [--check] [--rotate-token]";
 
 // The account's resources, with the wrangler login (or CLOUDFLARE_API_TOKEN).
 async function cf(method, path, body) {
@@ -301,17 +305,20 @@ async function main() {
   if (!config.teamDomain) todo("sharing.config.json has no teamDomain yet (it comes from the Access organization)");
 
   // ---- secrets -----------------------------------------------------------------
-  // Pages and Workers list secret names, never values.
+  // Pages and Workers list secret names, never values. A rotation pushes the
+  // token only once every check above has passed with it.
+  const rotate = Boolean(args.rotate && act && token && !todos.length);
+  if (args.rotate && act && !rotate) todo("--rotate-token: not rotating until the TODOs above are done");
   const pageSecrets = new Set(Object.keys(project.deployment_configs?.production?.env_vars || {}));
   let secretsChanged = false;
-  const pagesSecret = async (name, value) => {
-    if (pageSecrets.has(name)) return report("ok", `Pages secret ${name}`);
+  const pagesSecret = async (name, value, { replace = false } = {}) => {
+    if (pageSecrets.has(name) && !(replace && act)) return report("ok", `Pages secret ${name}`);
     if (!act || !value) return todo(`Pages secret ${name} isn't set${act ? "" : ": run setup.mjs without --check"}`);
     await putSecret(["pages", "secret", "put", name, "--project-name", config.project], value);
     secretsChanged = true;
     report("made", `Pages secret ${name}`);
   };
-  if (token) await pagesSecret("ACCESS_API_TOKEN", token);
+  if (token) await pagesSecret("ACCESS_API_TOKEN", token, { replace: rotate });
   else todo("Pages secret ACCESS_API_TOKEN waits for the Access token");
   // The Share screen's cookie key: random, made here, never shown or stored.
   await pagesSecret("SHARE_COOKIE_KEY", randomBytes(32).toString("base64url"));
@@ -320,7 +327,7 @@ async function main() {
   const workerSecrets = await cf("GET", `${acct}/workers/scripts/${revoker}/secrets`);
   if (!workerSecrets) {
     todo(`The ${revoker} Worker isn't deployed yet: publish once with sharing on (it deploys it), then re-run setup.mjs to give it ACCESS_API_TOKEN`);
-  } else if (workerSecrets.some((s) => s.name === "ACCESS_API_TOKEN")) report("ok", `${revoker} secret ACCESS_API_TOKEN`);
+  } else if (workerSecrets.some((s) => s.name === "ACCESS_API_TOKEN") && !rotate) report("ok", `${revoker} secret ACCESS_API_TOKEN`);
   else if (act && token) {
     await putSecret(["secret", "put", "ACCESS_API_TOKEN", "--name", revoker], token);
     report("made", `${revoker} secret ACCESS_API_TOKEN`);
