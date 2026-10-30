@@ -43,7 +43,7 @@ function quiet(command, args) {
     let err = "";
     child.stderr.on("data", (d) => (err += d));
     child.on("error", fail);
-    child.on("exit", (code) => (code === 0 ? done() : fail(new Error(`${command} ${args.join(" ")} failed: ${err.trim().slice(-300)}`))));
+    child.on("close", (code) => (code === 0 ? done() : fail(new Error(`${command} ${args.join(" ")} failed: ${err.trim().slice(-300)}`))));
   });
 }
 

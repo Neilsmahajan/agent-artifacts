@@ -1282,7 +1282,9 @@ async function snapshotHead(dir) {
   } catch {
     return dir; // not a git work tree
   }
-  const tree = `HEAD:${prefix}`;
+  // "close" (not "exit") in capture() guarantees the full output; an empty
+  // prefix means the root is the repository's top level.
+  const tree = `HEAD:${prefix ?? ""}`;
 
   // git archive succeeds while silently dropping submodule contents and
   // exporting Git LFS pointer files, and an extracted symlink that points out
@@ -1371,7 +1373,7 @@ function capture(command, commandArgs, { quietErrors = false } = {}) {
       output += chunk;
     });
     child.on("error", rejectPromise);
-    child.on("exit", (code, signal) => {
+    child.on("close", (code, signal) => {
       if (code === 0) resolvePromise(output);
       else rejectPromise(new Error(`${command} exited with ${code ?? signal}`));
     });

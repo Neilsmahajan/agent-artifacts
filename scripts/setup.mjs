@@ -105,7 +105,7 @@ function putSecret(args, value) {
     let err = "";
     child.stderr.on("data", (d) => (err += d));
     child.on("error", fail);
-    child.on("exit", (code) => (code === 0 ? done() : fail(new Error(`wrangler ${args.slice(0, 3).join(" ")} failed: ${err.trim().slice(-300)}`))));
+    child.on("close", (code) => (code === 0 ? done() : fail(new Error(`wrangler ${args.slice(0, 3).join(" ")} failed: ${err.trim().slice(-300)}`))));
     child.stdin.end(value);
   });
 }

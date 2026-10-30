@@ -45,7 +45,7 @@ export function capture(cmd, args) {
     child.stdout.on("data", (d) => (out += d));
     child.stderr.on("data", (d) => (err += d));
     child.on("error", reject);
-    child.on("exit", (code) => (code === 0 ? resolvePromise(out) : reject(new Error(`${cmd} ${args.slice(0, 3).join(" ")} failed: ${err.trim()}`))));
+    child.on("close", (code) => (code === 0 ? resolvePromise(out) : reject(new Error(`${cmd} ${args.slice(0, 3).join(" ")} failed: ${err.trim()}`))));
   });
 }
 
